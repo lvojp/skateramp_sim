@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <style>
+        margin-
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-8">
+            <h1 style="margin-top:100px;">スケートランプ シミュレーター</h1>
+            <p>スケートランプの部材切り出しシム</p>
+
+            <hr style="margin-bottom:30px;"/>
+            <po>
+                このプログラムは、<b>ランプの高さ</b>と<b>アール面の曲率半径</b>を入力すると<br/>
+                自動的に必要な部材のサイズを計算します。
+            </p>
+
+            <div class="row">
+                <div class="col-sm-8 mt-5 mb-5">
+                    <img src="img/manual.jpg" alt="manual" />
+                </div>
+            </div>
+
+            <table class="table table-bordered table-hover mb-5">
+                <tbody class="sim">
+                <tr>
+                    <td>
+                        <label class="form-label" for="input">ランプの高さ</label>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control"> (cm)</input>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <label class="form-label" for="input">R面の曲率半径</label>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control"> (cm)</input>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-8">
+
+            <h2>必要な部材</h2>
+
+            <table class="table table-bordered table-hover mb-5">
+                <tbody class="result">
+
+                <tr>
+                    <td>
+                        <label class="form-label">ランプの高さ</label>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" disabled> (cm)</input>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <label class="form-label">ランプ底辺の長さ</label>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control " disabled> (cm)</input>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <label class="form-label">ランプR面の長さ</label>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control " disabled> (cm)</input>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+
+            <h2>完成イメージ</h2>
+            <canvas id="draw_field" style="background-color:#e9ecef;width:100%;height:500px;">
+                図形を表示するには、canvasタグをサポートしたブラウザが必要です。
+            </canvas>
+        </div>
+    </div>
+    <div style="margin:100px 0 100px;">
+        <a href="http://giraffeong.com">G線上のきりん</a> /
+        <a href="http://wisdomtrees.net">WisdomTrees</a>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous">
+</script>
+<script src="js/bootstrap.js "></script>
+<script>
+    jQuery(function ($) {
+        $(window).on("load", function(){
+            main()
+        });
+
+        $('input', '.sim').keyup(function () {
+            main()
+        });
+
+        function main(){
+            var input_h = $('input:eq(0)', '.sim').val();
+            var input_r = $('input:eq(1)', '.sim').val();
+            //parseIntで文字列を数値に
+            input_h = parseInt(input_h);
+            input_r = parseInt(input_r);
+            //左側の入力値が数値では無い場合の処理
+            if (!input_h) {
+                //計算結果表示のinput内を削除
+                $('input:eq(2)', '.result').val('');
+                return false;
+            }
+            //右側の入力値が数値では無い場合の処理
+            if (!input_r) {
+                //計算結果表示のinput内を削除
+                $('input:eq(2)', '.result').val('');
+                return false
+            }
+            // 直角三角形の高さを取得
+            right_triangle_height = input_r - input_h;
+            // 直角三角形の底辺を取得
+            right_triangle_bottom = get_box_bottom(right_triangle_height,input_r);
+            // 直角三角形の斜辺と高さの間の角度を取得
+            triangle_deg_height_hypotenus = get_right_triangle_deg_height_hypotenus(right_triangle_height,input_r);
+            // 円弧長を取得
+            arc_length = get_arc_length(triangle_deg_height_hypotenus,input_r)
+
+            ramp_info = {
+                radius : input_r,
+                height : input_h,
+                bottom : right_triangle_bottom,
+                deg : triangle_deg_height_hypotenus,
+                arc : arc_length
+            }
+
+            $('input:eq(0)', '.result').val(input_h);
+            $('input:eq(1)', '.result').val(right_triangle_bottom);
+            $('input:eq(2)', '.result').val(arc_length);
+
+
+            canvas = document.getElementById('draw_field');
+            canvas.width = $('#draw_field').width()
+            canvas.height = $('#draw_field').height()
+            canvas.offset_x = 20;
+            canvas.offset_y = 20;
+
+            clear_canvas(canvas)
+            draw_rump(canvas,ramp_info)
+        }
+
+        function get_right_triangle_deg_height_hypotenus(height,hypotenus){
+            rad_bottom_hypotenus = Math.asin(height/hypotenus);
+            // 三角形の内角の和 = 180 の定理より
+            result = 180 - (rad2deg(rad_bottom_hypotenus) + 90);
+            return result;
+        }
+
+        function get_arc_length(deg,radius){
+            result = 2 * Math.PI * radius * (deg / 360);
+            return result;
+        }
+
+        function rad2deg(n){
+            result = n * 180 / Math.PI;
+            return result;
+        }
+
+        function deg2rad(n){
+            result = n * Math.PI / 180;
+            return result;
+        }
+
+        function get_box_bottom(height,hypotenuse){
+            // 三平方の定理より
+            temp = Math.pow(hypotenuse,2) - Math.pow(height,2);
+            result = Math.sqrt(temp);
+            return result
+        }
+
+        function draw_rump(canvas,ramp) {
+            if (canvas.getContext) {
+                ctx = canvas.getContext('2d');
+                draw_box(ctx,canvas,ramp)
+                draw_r(ctx,canvas,ramp)
+            }
+        }
+        function draw_box(ctx,canvas,ramp){
+            ctx.beginPath();
+            // デバッグ用オフセット
+            offset_x = canvas.offset_x;
+            offset_y = canvas.offset_y;
+            ctx.moveTo(offset_x, canvas.height - offset_y);
+            ctx.lineTo(offset_x + ramp.bottom, canvas.height - offset_y);
+            ctx.lineTo(offset_x + ramp.bottom, canvas.height - ramp.height - offset_y);
+            ctx.stroke();
+        }
+
+        function draw_r(ctx,canvas,ramp){
+            offset_x = canvas.offset_x;
+            offset_y = canvas.offset_y;
+            ctx.beginPath();
+            // ctx.moveTo(offset_x , canvas.height - ramp.radius - offset_y);
+            ctx.arc(offset_x, canvas.height - ramp.radius - offset_y, ramp.radius, deg2rad(90), deg2rad(90-ramp.deg),true);
+            // ctx.lineTo(offset_x , canvas.height - ramp.radius - offset_y);
+            ctx.stroke();
+        }
+
+        function clear_canvas(canvas) {
+            //描画コンテキストの取得
+            if (canvas.getContext) {
+                ctx = canvas.getContext('2d')
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+    });
+</script>
+
+<script>
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+    ga('create', 'UA-66236933-2', 'auto');
+    ga('send', 'pageview');
+
+</script>
+</div>
+</body>
+</html>
