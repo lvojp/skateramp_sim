@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Skate Rump Simulator</title>
     <link href="css/bootstrap.css" rel="stylesheet">
     <style>
         margin-
@@ -17,14 +17,14 @@
             <p>スケートランプの部材切り出しシム</p>
 
             <hr style="margin-bottom:30px;"/>
-            <po>
+            <p>
                 このプログラムは、<b>ランプの高さ</b>と<b>アール面の曲率半径</b>を入力すると<br/>
                 自動的に必要な部材のサイズを計算します。
             </p>
 
             <div class="row">
                 <div class="col-sm-8 mt-5 mb-5">
-                    <img src="img/manual.jpg" alt="manual" />
+                    <img src="img/manual.jpg" alt="manual"/>
                 </div>
             </div>
 
@@ -32,19 +32,19 @@
                 <tbody class="sim">
                 <tr>
                     <td>
-                        <label class="form-label" for="input">ランプの高さ</label>
+                        <label class="form-label" for="height">ランプの高さ</label>
                     </td>
                     <td>
-                        <input type="text" class="form-control"> (cm)</input>
+                        <input id="height" name="height" type="text" class="form-control"> (cm)
                     </td>
                 </tr>
 
                 <tr>
                     <td>
-                        <label class="form-label" for="input">R面の曲率半径</label>
+                        <label class="form-label" for="radius">R面の曲率半径</label>
                     </td>
                     <td>
-                        <input type="text" class="form-control"> (cm)</input>
+                        <input id="radius" name="radius" type="text" class="form-control"> (cm)
                     </td>
                 </tr>
                 </tbody>
@@ -62,28 +62,28 @@
 
                 <tr>
                     <td>
-                        <label class="form-label">ランプの高さ</label>
+                        <label class="form-label" for="rump-height">ランプの高さ</label>
                     </td>
                     <td>
-                        <input type="text" class="form-control" disabled> (cm)</input>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>
-                        <label class="form-label">ランプ底辺の長さ</label>
-                    </td>
-                    <td>
-                        <input type="text" class="form-control " disabled> (cm)</input>
+                        <input id="rump-height" name="rump-height" type="text" class="form-control" disabled> (cm)
                     </td>
                 </tr>
 
                 <tr>
                     <td>
-                        <label class="form-label">ランプR面の長さ</label>
+                        <label class="form-label" for="rump-bottom">ランプ底辺の長さ</label>
                     </td>
                     <td>
-                        <input type="text" class="form-control " disabled> (cm)</input>
+                        <input id="rump-bottom" name="rump-bottom" type="text" class="form-control " disabled> (cm)
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <label class="form-label" for="rump-radius">ランプR面の長さ</label>
+                    </td>
+                    <td>
+                        <input id="rump-radius" name="rump-radius" type="text" class="form-control " disabled> (cm)
                     </td>
                 </tr>
                 </tbody>
@@ -91,14 +91,14 @@
 
 
             <h2>完成イメージ</h2>
-            <canvas id="draw_field" style="background-color:#e9ecef;width:100%;height:500px;">
+            <canvas id="draw-field" style="background-color:#e9ecef;width:100%;height:500px;">
                 図形を表示するには、canvasタグをサポートしたブラウザが必要です。
             </canvas>
         </div>
     </div>
     <div style="margin:100px 0 100px;">
-        <a href="http://giraffeong.com">G線上のきりん</a> /
-        <a href="http://wisdomtrees.net">WisdomTrees</a>
+        <a href="https://giraffeong.com">G線上のきりん</a> /
+        <a href="https://wisdomtrees.net">WisdomTrees</a>
     </div>
 </div>
 
@@ -109,7 +109,7 @@
 <script src="js/bootstrap.js "></script>
 <script>
     jQuery(function ($) {
-        $(window).on("load", function(){
+        $(window).on("load", function () {
             main()
         });
 
@@ -117,117 +117,114 @@
             main()
         });
 
-        function main(){
-            var input_h = $('input:eq(0)', '.sim').val();
-            var input_r = $('input:eq(1)', '.sim').val();
+        function main() {
+            let inputH = $('input:eq(0)', '.sim').val();
+            let inputR = $('input:eq(1)', '.sim').val();
             //parseIntで文字列を数値に
-            input_h = parseInt(input_h);
-            input_r = parseInt(input_r);
+            inputH = parseInt(inputH);
+            inputR = parseInt(inputR);
             //左側の入力値が数値では無い場合の処理
-            if (!input_h) {
+            if (!inputH) {
                 //計算結果表示のinput内を削除
                 $('input:eq(2)', '.result').val('');
                 return false;
             }
             //右側の入力値が数値では無い場合の処理
-            if (!input_r) {
+            if (!inputR) {
                 //計算結果表示のinput内を削除
                 $('input:eq(2)', '.result').val('');
                 return false
             }
             // 直角三角形の高さを取得
-            right_triangle_height = input_r - input_h;
+            let rightTriangleHeight = inputR - inputH;
             // 直角三角形の底辺を取得
-            right_triangle_bottom = get_box_bottom(right_triangle_height,input_r);
+            let rightTriangleBottom = getBoxBottom(rightTriangleHeight, inputR);
             // 直角三角形の斜辺と高さの間の角度を取得
-            triangle_deg_height_hypotenus = get_right_triangle_deg_height_hypotenus(right_triangle_height,input_r);
+            let triangleDegHeightHypotenuse = getRightTriangleDegHeightHypotenuse(rightTriangleHeight, inputR);
             // 円弧長を取得
-            arc_length = get_arc_length(triangle_deg_height_hypotenus,input_r)
+            let arcLength = getArcLength(triangleDegHeightHypotenuse, inputR)
 
-            ramp_info = {
-                radius : input_r,
-                height : input_h,
-                bottom : right_triangle_bottom,
-                deg : triangle_deg_height_hypotenus,
-                arc : arc_length
+            let rampInfo = {
+                radius: inputR,
+                height: inputH,
+                bottom: rightTriangleBottom,
+                deg: triangleDegHeightHypotenuse,
+                arc: arcLength
             }
 
-            $('input:eq(0)', '.result').val(input_h);
-            $('input:eq(1)', '.result').val(right_triangle_bottom);
-            $('input:eq(2)', '.result').val(arc_length);
+            $('input:eq(0)', '.result').val(inputH);
+            $('input:eq(1)', '.result').val(rightTriangleBottom);
+            $('input:eq(2)', '.result').val(arcLength);
 
 
-            canvas = document.getElementById('draw_field');
-            canvas.width = $('#draw_field').width()
-            canvas.height = $('#draw_field').height()
+            let canvas = document.getElementById('draw-field');
+            let field = $('#draw-field');
+            canvas.width = field.width()
+            canvas.height = field.height()
             canvas.offset_x = 20;
             canvas.offset_y = 20;
 
-            clear_canvas(canvas)
-            draw_rump(canvas,ramp_info)
+            clearCanvas(canvas)
+            drawRump(canvas, rampInfo)
         }
 
-        function get_right_triangle_deg_height_hypotenus(height,hypotenus){
-            rad_bottom_hypotenus = Math.asin(height/hypotenus);
+        function getRightTriangleDegHeightHypotenuse(height, hypotenus) {
+            let radBottomHypotenuse = Math.asin(height / hypotenus);
             // 三角形の内角の和 = 180 の定理より
-            result = 180 - (rad2deg(rad_bottom_hypotenus) + 90);
-            return result;
+            return 180 - (rad2deg(radBottomHypotenuse) + 90);
         }
 
-        function get_arc_length(deg,radius){
-            result = 2 * Math.PI * radius * (deg / 360);
-            return result;
+        function getArcLength(deg, radius) {
+            return 2 * Math.PI * radius * (deg / 360);
         }
 
-        function rad2deg(n){
-            result = n * 180 / Math.PI;
-            return result;
+        function rad2deg(n) {
+            return n * 180 / Math.PI;
         }
 
-        function deg2rad(n){
-            result = n * Math.PI / 180;
-            return result;
+        function deg2rad(n) {
+            return n * Math.PI / 180;
         }
 
-        function get_box_bottom(height,hypotenuse){
+        function getBoxBottom(height, hypotenuse) {
             // 三平方の定理より
-            temp = Math.pow(hypotenuse,2) - Math.pow(height,2);
-            result = Math.sqrt(temp);
-            return result
+            let temp = Math.pow(hypotenuse, 2) - Math.pow(height, 2);
+            return Math.sqrt(temp);
         }
 
-        function draw_rump(canvas,ramp) {
+        function drawRump(canvas, ramp) {
             if (canvas.getContext) {
-                ctx = canvas.getContext('2d');
-                draw_box(ctx,canvas,ramp)
-                draw_r(ctx,canvas,ramp)
+                let ctx = canvas.getContext('2d');
+                drawBox(ctx, canvas, ramp)
+                drawR(ctx, canvas, ramp)
             }
         }
-        function draw_box(ctx,canvas,ramp){
+
+        function drawBox(ctx, canvas, ramp) {
             ctx.beginPath();
             // デバッグ用オフセット
-            offset_x = canvas.offset_x;
-            offset_y = canvas.offset_y;
+            let offset_x = canvas.offset_x;
+            let offset_y = canvas.offset_y;
             ctx.moveTo(offset_x, canvas.height - offset_y);
             ctx.lineTo(offset_x + ramp.bottom, canvas.height - offset_y);
             ctx.lineTo(offset_x + ramp.bottom, canvas.height - ramp.height - offset_y);
             ctx.stroke();
         }
 
-        function draw_r(ctx,canvas,ramp){
-            offset_x = canvas.offset_x;
-            offset_y = canvas.offset_y;
+        function drawR(ctx, canvas, ramp) {
+            let offset_x = canvas.offset_x;
+            let offset_y = canvas.offset_y;
             ctx.beginPath();
             // ctx.moveTo(offset_x , canvas.height - ramp.radius - offset_y);
-            ctx.arc(offset_x, canvas.height - ramp.radius - offset_y, ramp.radius, deg2rad(90), deg2rad(90-ramp.deg),true);
+            ctx.arc(offset_x, canvas.height - ramp.radius - offset_y, ramp.radius, deg2rad(90), deg2rad(90 - ramp.deg), true);
             // ctx.lineTo(offset_x , canvas.height - ramp.radius - offset_y);
             ctx.stroke();
         }
 
-        function clear_canvas(canvas) {
+        function clearCanvas(canvas) {
             //描画コンテキストの取得
             if (canvas.getContext) {
-                ctx = canvas.getContext('2d')
+                let ctx = canvas.getContext('2d')
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
         }
