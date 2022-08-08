@@ -118,6 +118,21 @@
         });
 
         function main() {
+            // 描画領域の設定
+            let canvas = document.getElementById('draw-field');
+            let field = $('#draw-field');
+            canvas.width = field.width()
+            canvas.height = field.height()
+            if (canvas.width > canvas.height) {
+                canvas.maxWidth = field.height() * 0.8
+                canvas.maxHeight = field.height() * 0.8
+            } else {
+                canvas.maxWidth = field.width() * 0.8
+                canvas.maxHeight = field.width() * 0.8
+            }
+            // 描画の初期化
+            clearCanvas(canvas)
+
             let inputH = $('input:eq(0)', '.sim').val();
             let inputR = $('input:eq(1)', '.sim').val();
             //parseIntで文字列を数値に
@@ -126,15 +141,25 @@
             //左側の入力値が数値では無い場合の処理
             if (!inputH) {
                 //計算結果表示のinput内を削除
+                $('input:eq(1)', '.result').val('');
                 $('input:eq(2)', '.result').val('');
                 return false;
             }
             //右側の入力値が数値では無い場合の処理
             if (!inputR) {
                 //計算結果表示のinput内を削除
+                $('input:eq(1)', '.result').val('');
                 $('input:eq(2)', '.result').val('');
                 return false
             }
+            //HeightよりRadiusが小さい場合
+            if (inputR < inputH) {
+                //計算結果表示のinput内を削除
+                $('input:eq(1)', '.result').val('');
+                $('input:eq(2)', '.result').val('');
+                return false
+            }
+
             // 直角三角形の高さを取得
             let rightTriangleHeight = inputR - inputH;
             // 直角三角形の底辺を取得
@@ -156,13 +181,6 @@
             $('input:eq(1)', '.result').val(rightTriangleBottom);
             $('input:eq(2)', '.result').val(arcLength);
 
-
-            let canvas = document.getElementById('draw-field');
-            let field = $('#draw-field');
-            canvas.width = field.width()
-            canvas.height = field.height()
-            canvas.offset_x = (canvas.width - rightTriangleBottom) / 2;
-            canvas.offset_y = 20;
 
             clearCanvas(canvas)
             drawRump(canvas, rampInfo)
@@ -196,33 +214,52 @@
             return Math.sqrt(Math.pow(hypotenuse, 2) - Math.pow(height, 2));
         }
 
+        function getCorrectRatio(canvas, ramp) {
+            let widthRatio = ramp.bottom / canvas.maxWidth;
+            let heightRatio = ramp.height / canvas.maxHeight;
+            let orgWidth = ramp.bottom;
+            let orgHeight = ramp.height;
+            let orgRadius = ramp.radius;
+
+            ramp.bottom = orgWidth / widthRatio;
+            ramp.height = orgHeight / widthRatio;
+            ramp.radius = orgRadius / widthRatio;
+
+            canvas.offsetX = (canvas.width - ramp.bottom) / 2;
+            canvas.offsetY = 20;
+            return ramp;
+        }
+
         function drawRump(canvas, ramp) {
             if (canvas.getContext) {
                 let ctx = canvas.getContext('2d');
-                drawBox(ctx, canvas, ramp)
-                drawR(ctx, canvas, ramp)
+                let ramp4Draw = getCorrectRatio(canvas, ramp)
+                drawBox(ctx, canvas, ramp4Draw)
+                drawR(ctx, canvas, ramp4Draw)
             }
         }
 
         function drawBox(ctx, canvas, ramp) {
             ctx.beginPath();
             // デバッグ用オフセット
-            let offset_x = canvas.offset_x;
-            let offset_y = canvas.offset_y;
-            ctx.moveTo(offset_x, canvas.height - offset_y);
-            ctx.lineTo(offset_x + ramp.bottom, canvas.height - offset_y);
-            ctx.lineTo(offset_x + ramp.bottom, canvas.height - ramp.height - offset_y);
+            let offsetX = canvas.offsetX;
+            let offsetY = canvas.offsetY;
+            ctx.moveTo(offsetX, canvas.height - offsetY);
+            ctx.lineTo(offsetX + ramp.bottom, canvas.height - offsetY);
+            ctx.lineTo(offsetX + ramp.bottom, canvas.height - ramp.height - offsetY);
             // ctx.lineTo(offset_x + ramp.bottom, canvas.height - offset_y);
             // ctx.lineTo(offset_x + ramp.bottom, canvas.height - ramp.height - offset_y);
             ctx.stroke();
         }
 
         function drawR(ctx, canvas, ramp) {
-            let offset_x = canvas.offset_x;
-            let offset_y = canvas.offset_y;
+            let offsetX = canvas.offsetX;
+            let offsetY = canvas.offsetY;
             ctx.beginPath();
+            let x = canvas.offsetX;
+            let y = canvas.height - ramp.radius - offsetY;
             // ctx.moveTo(offset_x , canvas.height - ramp.radius - offset_y);
-            ctx.arc(offset_x, canvas.height - ramp.radius - offset_y, ramp.radius, deg2rad(90), deg2rad(90 - ramp.deg), true);
+            ctx.arc(x, y, ramp.radius, deg2rad(90), deg2rad(90 - ramp.deg), true);
             // ctx.lineTo(offset_x , canvas.height - ramp.radius - offset_y);
             ctx.stroke();
         }
